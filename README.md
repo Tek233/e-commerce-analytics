@@ -1,1 +1,1 @@
-# DL-with-python
+# e-commerce analytics
