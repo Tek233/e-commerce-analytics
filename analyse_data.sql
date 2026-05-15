@@ -48,3 +48,22 @@ SELECT country AS shipping_country,
 	JOIN orders o USING(customer_id)
 	GROUP BY country
 	ORDER BY country;
+
+-- =====================================================
+-- Find all products where the total refund_amount exceeds $100. 
+-- Return product name, category, total units sold, total refunded amount, and return rate (refunded units ÷ sold units, as a percentage).
+-- Expected output:
+-- Only products with total refunds > $100.
+-- =====================================================
+SELECT product_id, name, category,
+	SUM(quantity) AS total_units_sold, 
+	SUM(refund_amount) AS total_refunded_amount, 
+	 ROUND(
+        100.0 * COUNT(return_id) / NULLIF(SUM(quantity), 0),
+        2
+    ) AS return_rate
+	FROM products
+	JOIN order_items USING(product_id)
+	JOIN returns USING(item_id) 
+	GROUP BY product_id,name, category
+	HAVING SUM(refund_amount) >100;
