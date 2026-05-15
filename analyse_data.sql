@@ -16,8 +16,20 @@ SELECT full_name, email, SUM(quantity* unit_price) AS sum_money_spent FROM custo
 -- Expected output:
 -- Customers with no matching row in orders.
 -- =====================================================
-
 SELECT full_name,email,signup_date FROM customers 
 	LEFT JOIN orders USING(customer_id)
 	WHERE order_id is NULL
 	ORDER BY signup_date;
+
+-- =====================================================
+-- Show total revenue (from delivered order_items) grouped by calendar month for the year 2024. 
+-- Order chronologically.
+-- Expected output:
+-- Columns: month, total_revenue.
+-- =====================================================
+SELECT  EXTRACT(month from order_date) AS month, SUM(quantity * unit_price) AS total_revenue FROM orders
+	JOIN order_items USING(order_id)
+	WHERE (EXTRACT(year from order_date) ='2024' AND status='delivered')
+	GROUP BY 1
+	ORDER BY 1
+;
