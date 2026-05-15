@@ -10,3 +10,14 @@ SELECT full_name, email, SUM(quantity* unit_price) AS sum_money_spent FROM custo
 	WHERE status= 'delivered'
 	GROUP BY c.customer_id,full_name,email
 	ORDER BY sum_money_spent DESC;
+
+-- =====================================================
+-- Find all customers who have never placed any order. Return their full_name, email, and signup_date.
+-- Expected output:
+-- Customers with no matching row in orders.
+-- =====================================================
+
+SELECT full_name,email,signup_date FROM customers 
+	LEFT JOIN orders USING(customer_id)
+	WHERE order_id is NULL
+	ORDER BY signup_date;
