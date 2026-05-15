@@ -31,5 +31,20 @@ SELECT  EXTRACT(month from order_date) AS month, SUM(quantity * unit_price) AS t
 	JOIN order_items USING(order_id)
 	WHERE (EXTRACT(year from order_date) ='2024' AND status='delivered')
 	GROUP BY 1
-	ORDER BY 1
-;
+	ORDER BY 1;
+
+-- =====================================================
+-- For each shipping country, count how many orders are in each status (delivered, shipped, pending, cancelled). Pivot the result so each status is its own column.
+-- Expected output:
+-- Columns: shipping_country, delivered, shipped, pending, cancelled.
+-- =====================================================
+SELECT country AS shipping_country,
+	COUNT(CASE WHEN o.status= 'delivered' THEN 1 END) AS delivered, 
+	COUNT(CASE WHEN o.status= 'shipped' THEN 1 END) AS shipped,
+	COUNT(CASE WHEN o.status= 'pending' THEN 1 END) AS pending,
+	COUNT(CASE WHEN o.status= 'cancelled' THEN 1 END) AS cancelled 
+
+	FROM customers
+	JOIN orders o USING(customer_id)
+	GROUP BY country
+	ORDER BY country;
