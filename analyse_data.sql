@@ -146,3 +146,23 @@ JOIN orders USING(order_id)
 WHERE status = 'delivered'
 GROUP BY category
 ORDER BY category_revenue DESC;
+
+-- =====================================================
+-- Complete monthly revenue calendar (no gaps)
+-- Generate a complete list of every month in 2024 (Jan–Dec). 
+-- For each month, show total delivered revenue — including $0 for months with no sales.
+-- Expected output:
+-- 12 rows exactly. Columns: month, total_revenue (0 for empty months).
+-- =====================================================
+WITH months AS (
+    SELECT generate_series(1, 12) AS month
+)
+
+SELECT m.month ,COALESCE(SUM(quantity*unit_price),0)  AS total_revenue 
+	FROM months m
+	LEFT JOIN orders o ON EXTRACT(month from o.order_date) = m.month
+	AND EXTRACT(year from o.order_date)='2024'
+	AND o.status='delivered'
+	LEFT JOIN order_items oi USING(order_id)
+	GROUP BY m.month
+	ORDER BY m.month;
