@@ -166,3 +166,33 @@ SELECT m.month ,COALESCE(SUM(quantity*unit_price),0)  AS total_revenue
 	LEFT JOIN order_items oi USING(order_id)
 	GROUP BY m.month
 	ORDER BY m.month;
+
+-- =====================================================
+-- Group customers by their signup month (cohort). 
+-- For each cohort, count: how many customers signed up, and how many placed at least one order within 30 days of signup. 
+-- Show the conversion rate.
+-- Expected output:
+-- Columns: cohort_month, cohort_size, converted, conversion_rate_pct.
+-- =====================================================
+WITH customer_conversion AS (
+	SELECT 
+		c.customer_id,
+		EXTRACT(month FROM c.signup_date) AS cohort_month,
+		EXISTS(
+			SELECT 1
+			FROM orders o
+			WHERE o.customer_id= c.customer_id
+				AND o.order_date <= c.signup_date + INTERVAL '30 days'
+                AND o.order_date >= c.signup_date
+		) AS converted
+ FROM customers c)
+
+
+SELECT 
+	cohort_month,
+	COUNT(*) AS cohort_size,
+	COUNT(*) FILTER (WHERE converted) AS converted,
+	ROUND(100.0 * COUNT(*) FILTER (WHERE converted)/ COUNT(*),2) AS conversion_rate_pct
+	FROM customer_conversion
+	GROUP BY cohort_month
+	ORDER BY cohort_month;
