@@ -98,3 +98,23 @@ ranked_prods AS (
 SELECT *
 FROM ranked_prods
 WHERE rank_in_category = 1;
+
+-- =====================================================
+-- Days between a customer's consecutive orders
+-- For each customer, list all their orders with the number of days since their previous order. 
+-- First orders should show NULL for the gap. Order by customer, then order date.
+-- Expected output:
+-- Columns: full_name, order_id, order_date, days_since_prev_order.
+-- =====================================================
+SELECT
+    full_name,
+    order_id,
+    order_date,
+    order_date
+      - LAG(order_date) OVER (
+            PARTITION BY customer_id
+            ORDER BY order_date
+        ) AS days_since_prev_order
+FROM customers
+LEFT JOIN orders USING(customer_id)
+ORDER BY customer_id, order_date;
