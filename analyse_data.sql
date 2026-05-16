@@ -118,3 +118,31 @@ SELECT
 FROM customers
 LEFT JOIN orders USING(customer_id)
 ORDER BY customer_id, order_date;
+
+-- =====================================================
+-- Calculate each product category's total revenue and its percentage of total store revenue across all delivered orders. 
+-- Sort by revenue descending.
+-- Expected output:
+-- Columns: category, category_revenue, pct_of_total.
+-- =====================================================
+SELECT 
+    category,
+    SUM(quantity * unit_price) AS category_revenue,
+    ROUND(
+        (
+            SUM(quantity * unit_price) * 100.0 /
+            (
+                SELECT SUM(quantity * unit_price)
+                FROM order_items
+                JOIN orders USING(order_id)
+                WHERE status = 'delivered'
+            )
+        ),
+        2
+    ) AS pct_of_total
+FROM products
+JOIN order_items USING(product_id)
+JOIN orders USING(order_id)
+WHERE status = 'delivered'
+GROUP BY category
+ORDER BY category_revenue DESC;
