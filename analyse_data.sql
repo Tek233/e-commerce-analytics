@@ -244,3 +244,65 @@ SELECT
 	) AS PROFIT_RANK
 FROM
 	NET_TABLE;
+
+-- =====================================================
+-- Compute for each customer: recency (days since last delivered order), frequency (number of delivered orders), and monetary value (total revenue from delivered orders). 
+-- Then classify each customer as Champion, Loyal, At Risk, or Inactive using CASE logic.
+-- Expected output:
+-- Columns: full_name, recency_days, frequency, monetary, segment.
+-- =====================================================
+WITH delivered_orders AS (
+    SELECT *
+    FROM orders
+    WHERE status = 'delivered'
+),
+
+customer_metrics AS (
+    SELECT
+        c.customer_id,
+        c.full_name,
+
+        CURRENT_DATE - MAX(dos.order_date::date)
+            AS recency_days,
+
+        COUNT(DISTINCT dos.order_id)
+            AS frequency,
+
+        SUM(oi.quantity * oi.unit_price)
+            AS monetary
+
+    FROM customers c
+
+    JOIN delivered_orders dos
+        ON c.customer_id = dos.customer_id
+
+    JOIN order_items oi
+        ON dos.order_id = oi.order_id
+
+    GROUP BY
+        c.customer_id,
+        c.full_name
+)
+
+SELECT
+    full_name,
+    recency_days,
+    frequency,
+    monetary,
+
+    CASE
+        WHEN monetary > 250
+             AND frequency >= 3
+             AND recency_days <= 30
+        THEN 'Champion'
+
+        WHEN monetary > 200
+        THEN 'Loyal'
+
+        WHEN recency_days > 90
+        THEN 'At Risk'
+
+        ELSE 'Inactive'
+    END AS segment
+
+FROM customer_metrics;
