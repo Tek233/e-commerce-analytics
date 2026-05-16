@@ -67,3 +67,34 @@ SELECT product_id, name, category,
 	JOIN returns USING(item_id) 
 	GROUP BY product_id,name, category
 	HAVING SUM(refund_amount) >100;
+
+-- =====================================================
+-- For each product category, find the single best-selling product by total revenue (quantity × unit_price).
+-- If there is a tie, return both.
+-- Expected output:
+-- Columns: category, product_name, total_revenue, rank_in_category.
+-- =====================================================
+WITH summed_vals AS (
+    SELECT
+        category,
+        name AS product_name,
+        SUM(quantity * unit_price) AS total_revenue
+    FROM products p
+    JOIN order_items USING(product_id)
+    GROUP BY name, category
+),
+ranked_prods AS (
+    SELECT
+        category,
+        product_name,
+        total_revenue,
+        DENSE_RANK() OVER (
+            PARTITION BY category
+            ORDER BY total_revenue DESC
+        ) AS rank_in_category
+    FROM summed_vals
+)
+
+SELECT *
+FROM ranked_prods
+WHERE rank_in_category = 1;
