@@ -196,3 +196,51 @@ SELECT
 	FROM customer_conversion
 	GROUP BY cohort_month
 	ORDER BY cohort_month;
+
+-- =====================================================
+-- For each product, calculate: gross margin per unit (list_price − cost_price), total gross profit earned (sold units × margin), total refunds paid out, and net profit after refunds. 
+-- Rank products by net profit.
+-- Expected output:
+-- Columns: name, category, margin_per_unit, gross_profit, total_refunds, net_profit, profit_rank.
+-- =====================================================
+WITH
+	REFUND_PER_ITEM AS (
+		SELECT
+			ITEM_ID,
+			SUM(REFUND_AMOUNT) AS TOTAL_REFUND
+		FROM
+			RETURNS
+		GROUP BY
+			ITEM_ID
+	),
+	PRODUCTS_INFO AS (
+		SELECT
+			OI.PRODUCT_ID,
+			SUM(OI.QUANTITY) AS SOLD_UNITS,
+			COALESCE(SUM(RPI.TOTAL_REFUND), 0) AS TOTAL_REFUNDS
+		FROM
+			ORDER_ITEMS OI
+			LEFT JOIN REFUND_PER_ITEM RPI ON OI.ITEM_ID = RPI.ITEM_ID
+		GROUP BY
+			OI.PRODUCT_ID
+	),
+	NET_TABLE AS (
+		SELECT
+			NAME,
+			CATEGORY,
+			(LIST_PRICE - COST_PRICE) AS MARGIN_PER_UNIT,
+			(LIST_PRICE - COST_PRICE) * SOLD_UNITS AS GROSS_PROFIT,
+			TOTAL_REFUNDS,
+			((LIST_PRICE - COST_PRICE) * SOLD_UNITS) - TOTAL_REFUNDS AS NET_PROFIT
+		FROM
+			PRODUCTS
+			JOIN PRODUCTS_INFO PI USING (PRODUCT_ID)
+	)
+SELECT
+	*,
+	DENSE_RANK() OVER (
+		ORDER BY
+			NET_PROFIT DESC
+	) AS PROFIT_RANK
+FROM
+	NET_TABLE;
