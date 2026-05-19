@@ -29,8 +29,9 @@ This project contains a PostgreSQL ecommerce database schema and a collection of
 
 | File | Description |
 |------|-------------|
-| schema.sql | Database schema creation |
-| queries.sql | SQL analytics queries |
+| init_database.sql | Database schema creation |
+| insert_sample_data.sql | Sample data for testing |
+| analyse_data.sql | SQL analytics queries |
 | ecommerce_data_dictionary.md | Data dictionary documentation |
 
 ## Technologies
